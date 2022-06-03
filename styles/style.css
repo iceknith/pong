@@ -14,11 +14,9 @@
 
 body {
     margin: 0px;
-    overflow-x: hidden;
 }
 
 h1 {
-    margin: 20%;
     font-size: 100px;
     font-family: retro;
 }
@@ -28,7 +26,11 @@ h1 {
     color: azure;
     text-shadow: black 5px 5px;
     background-color: var(--gris-fonce);
-    border-top: solid var(--gris-fonce) 54px;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #description {
@@ -57,29 +59,29 @@ h1 {
 
 #colorBox {
     background-color: var(--gris-clair);
+    height: 100vh;
 }
 
 #transition1 {
     background: linear-gradient(to top, var(--gris-clair), var(--gris-fonce));
+    height: 50vh;
 }
 
 #transition2 {
-    height: 50%;
-    width: 100%;
+    height: 50vh;
     background: linear-gradient(to bottom, var(--gris-clair), #000000);
 }
 
 #game {
+    display: flex;
+    justify-content: center;
     align-items: center;
     background-color: #000000;
-    border-bottom: #000000 solid 50px;
+    height: 100vh;
 }
 
 #game>canvas {
-    margin-top: 10%;
-    margin-left: 12.5%;
     height: 75%;
     width: 75%;
-    display: inline;
     border: #fff 5px solid;
 }

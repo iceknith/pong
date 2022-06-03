@@ -1,89 +1,11 @@
 function resizeAll() {
-    var titre = document.getElementById("titre");
-    titre.style.width = window.innerWidth + "px";
-    titre.style.height = window.innerHeight + "px";
-    titre.style.position = "absolute";
-    titre.style.top = "0px";
-
-    var transition1 = document.getElementById("transition1");
-    transition1.style.width = window.innerWidth + "px";
-    transition1.style.height = 0.5 * window.innerHeight + "px";
-    transition1.style.position = "absolute";
-    transition1.style.top = window.innerHeight + "px";
-
-    var colorBox = document.getElementById("colorBox");
-    colorBox.style.width = window.innerWidth + "px";
-    colorBox.style.height = window.innerHeight + "px";
-    colorBox.style.position = "absolute";
-    colorBox.style.top = 1.5 * window.innerHeight + "px";
-
-    var transition2 = document.getElementById("transition2");
-    transition2.style.width = window.innerWidth + "px";
-    transition2.style.height = 0.5 * window.innerHeight + "px";
-    transition2.style.position = "absolute";
-    transition2.style.top = 2.5 * window.innerHeight + "px";
-
-    var game = document.getElementById("game");
-    game.style.width = window.innerWidth + "px";
-    game.style.height = window.innerHeight + "px";
-    game.style.position = "absolute";
-    game.style.top = 3 * window.innerHeight + "px";
-
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
     pongBallPos = [canvas.width / 2, canvas.height / 2];
 
 }
 
-function scrollMove(event, scrollPointYs) {
-    //check if can animate
-    if (!canAnimate) {
-        return false;
-    }
 
-    currentScroll = document.documentElement.scrollTop;
-
-    scrollPointYs.forEach(scrollPointY => {
-        scrollPointY *= window.innerHeight;
-        if (event.deltaY > 0 && currentScroll < scrollPointY || //check down
-            event.deltaY < 0 && currentScroll > scrollPointY) { //check up
-            //prevent glitches
-            canAnimate = false
-            scrollDisable()
-            console.log(scrollPointY)
-
-            var scrollMagnitude = -(scrollPointY - currentScroll);
-
-            //scrolling animation
-            document.documentElement.animate(
-                //keyspoints
-                [{ transform: "translateY(0px)" },
-                    { transform: "translateY(" + scrollMagnitude / 1.5 + "px)" },
-                    { transform: "translateY(" + scrollMagnitude + "px)" }
-                ],
-                //specifications
-                { duration: 450, iterations: 1 });
-
-
-            setTimeout(() => {
-                canAnimate = true;
-                scrollEnable();
-                document.documentElement.scrollTop = scrollPointY;
-            }, 450);
-        }
-    });
-}
-
-function scrollDisable() {
-    scrollY = document.documentElement.scrollTop;
-    scrollX = document.documentElement.scrollLeft;
-
-    window.onscroll = () => { window.scrollTo(scrollX, scrollY); };
-}
-
-function scrollEnable() {
-    window.onscroll = () => {};
-}
 
 function isInRectangle(x, y, xCenter, yCenter, width, height) {
     if (Math.max(Math.abs(x - xCenter) - width, Math.abs(y - yCenter) - height) < 0) {
