@@ -9,7 +9,7 @@
     <script src="../javaScripts/game.js"></script>
 </head>
 
-<body onresize="resizeAll()" onwheel="nextPage(event)">
+<body onresize="resizeCanvas()" onwheel="nextPage(event)">
     <div id="titre">
         <h1>PONG</h1>
     </div>
@@ -32,7 +32,7 @@
     </div>
     <div id="transition2"></div>
     <div id="game" tabindex="0">
-        <canvas id="gameCanvas"></canvas>
+        <canvas onmousemove="mousePosHandler(event)" onmousedown="mouseClickHandler()" id="gameCanvas"></canvas>
     </div>
 </body>
 

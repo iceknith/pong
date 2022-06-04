@@ -1,17 +1,20 @@
-function resizeAll() {
+function resizeCanvas() {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
-    pongBallPos = [canvas.width / 2, canvas.height / 2];
-
+    if (!isPlaying) {
+        pongBallPos = [canvas.width / 2, canvas.height / 2];
+    }
 }
-
-
 
 function isInRectangle(x, y, xCenter, yCenter, width, height) {
     if (Math.max(Math.abs(x - xCenter) - width, Math.abs(y - yCenter) - height) < 0) {
         return true;
     }
     return false;
+}
+
+function isInCircle(x, y, xCenter, yCenter, radius) {
+    return (x - xCenter) ** 2 + (y - yCenter) ** 2 <= radius ** 2
 }
 
 function circleIntersectRectangle(xc, yc, radius, xr, yr, width, height) {
@@ -21,23 +24,32 @@ function circleIntersectRectangle(xc, yc, radius, xr, yr, width, height) {
     y1 = yr - height / 2;
     y2 = yr + height / 2;
 
+    function sideDetection(cPos1, cPos2, radius, edge1, edge2, pos) {
+        return Math.abs(pos - cPos1) <= radius && edge1 <= cPos2 && cPos2 <= edge2
+    }
     //calcul si intersection ou pas
-    if (Math.abs(y1 - yc) <= radius && x1 <= xc && xc <= x2 //side detection
-        ||
-        (y1 - yc) ** 2 + (x1 - xc) ** 2 <= radius ** 2 || (y1 - yc) ** 2 + (x2 - xc) ** 2 <= radius ** 2 //edge detection
-    ) {
+    if (sideDetection(yc, xc, radius, x1, x2, y1)) {
         return true
     }
-    if (Math.abs(y2 - yc) <= radius && x1 <= xc && xc <= x2 ||
-        (y2 - yc) ** 2 + (x1 - xc) ** 2 <= radius ** 2 || (y2 - yc) ** 2 + (x2 - xc) ** 2 <= radius ** 2) {
+    if (sideDetection(yc, xc, radius, x1, x2, y2)) {
         return true
     }
-    if (Math.abs(x1 - xc) <= radius && y1 <= yc && yc <= y2 ||
-        (x1 - xc) ** 2 + (y1 - yc) ** 2 <= radius ** 2 || (x1 - xc) ** 2 + (y2 - yc) ** 2 <= radius ** 2) {
+    if (sideDetection(xc, yc, radius, y1, y2, x1)) {
         return true
     }
-    if (Math.abs(x2 - xc) <= radius && y1 <= yc && yc <= y2 ||
-        (x2 - xc) ** 2 + (y1 - yc) ** 2 <= radius ** 2 || (x2 - xc) ** 2 + (y2 - yc) ** 2 <= radius ** 2) {
+    if (sideDetection(xc, yc, radius, y1, y2, x2)) {
+        return true
+    }
+    if (isInCircle(x1, y1, xc, yc, radius)) {
+        return true
+    }
+    if (isInCircle(x2, y1, xc, yc, radius)) {
+        return true
+    }
+    if (isInCircle(x1, y2, xc, yc, radius)) {
+        return true
+    }
+    if (isInCircle(x2, y2, xc, yc, radius)) {
         return true
     }
     return false
@@ -69,12 +81,13 @@ function mouseClickHandler() {
 }
 
 function update() {
-    if (!canAnimate) {
-        return false;
-    }
-
     //resetting canvas
     context.clearRect(0, 0, canvas.width, canvas.height);
+
+    //defining delta time
+    time1 = new Date().getTime();
+    deltaTime = time1 - time0;
+    time0 = time1;
 
     if (isPlaying) {
 
@@ -82,13 +95,13 @@ function update() {
         context.fillStyle = "white";
         //player
         context.fillRect(40, pongPlayerPosY - 30, 10, 60)
-            //bot
+        //bot
         context.fillRect(canvas.width - 50, pongBotPosY - 30, 10, 60)
-            //scores
+        //scores
         context.font = '100px retro';
         context.fillText(pongPlayerScore, 100, 100)
         context.fillText(pongBotScore, canvas.width - 150, 100)
-            //ball
+        //ball
         context.beginPath();
         context.arc(pongBallPos[0], pongBallPos[1], 15, 0, 2 * Math.PI)
         context.fill();
@@ -97,7 +110,7 @@ function update() {
         //--GameLogic--//
         x = pongBallPos[0]
         y = pongBallPos[1]
-            //scoreLogic
+        //scoreLogic
         if (x < 0) {
             pongBotScore += 1;
             x = canvas.width / 2
@@ -121,8 +134,8 @@ function update() {
         }
         //ballMovement
         pongBallPos = [
-            Math.cos(pongBallDirection) * pongBallSpeed + x,
-            Math.cos(Math.PI / 2 - pongBallDirection) * pongBallSpeed + y
+            Math.cos(pongBallDirection) * pongBallSpeed * deltaTime + x,
+            Math.cos(Math.PI / 2 - pongBallDirection) * pongBallSpeed * deltaTime + y
         ];
 
         //IA Logic
@@ -141,16 +154,18 @@ function update() {
         context.fillStyle = "black";
         context.fillText('Play', canvas.width / 2 - 75, canvas.height / 2 - 180);
     }
+    window.requestAnimationFrame(update)
 }
 
 //global variables definition
-var canAnimate = true;
 
 var isPlaying = false;
 var cursorOnButton = false;
+var time0;
+var time1;
 
 var pongBallPos;
-var pongBallSpeed = 15;
+const pongBallSpeed = 0.75;
 var pongBallDirection = Math.random() * 2 * Math.PI;
 
 var pongPlayerPosY = 375;
@@ -161,13 +176,13 @@ var pongBotScore = 0;
 var canvas;
 var context;
 
-window.onload = function() {
+window.onload = function () {
 
     canvas = document.getElementById("gameCanvas");
     context = canvas.getContext("2d");
 
-    resizeAll();
+    resizeCanvas();
 
-    //calling update in order to display 50fps
-    setInterval(update, 20);
+    //calling update in order to display & update the canvas
+    window.requestAnimationFrame(update);
 }

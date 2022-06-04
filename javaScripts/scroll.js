@@ -8,15 +8,14 @@ function customScrollTo(position, duration) {
 
     function step(newTimestamp) {
         if (oldTimestamp !== null) {
-            // if duration is 0 scrollCount will be Infinity
             scrollCount += (Math.PI * (newTimestamp - oldTimestamp)) / duration;
-            if (scrollCount >= Math.PI)
+            if (scrollCount >= Math.PI) 
                 return (document.scrollingElement.scrollTop = position);
-            document.scrollingElement.scrollTop =
-                (1 - Math.cos(scrollCount)) * cosParameter + startPos;
+            document.scrollingElement.scrollTop =                      
+                (1 - Math.cos(scrollCount)) * cosParameter + startPos; 
         }
-        oldTimestamp = newTimestamp;
-        window.requestAnimationFrame(step);
+        oldTimestamp = newTimestamp; 
+        window.requestAnimationFrame(step); 
     }
     window.requestAnimationFrame(step);
 }
@@ -27,17 +26,17 @@ const delay = 1000;
 
 function clamp(num, min, max) { return Math.min(Math.max(num, min), max); }
 
-function nextPage(e) {
+function nextPage(e) { 
     e.preventDefault();
-    if (freeze) return;
+    if (freeze) return; 
     page += Math.sign(e.deltaY);
     page = clamp(page, 0, maxPages);
-    const position = window.innerHeight * 1.5 * page;
-    if (document.scrollingElement.scrollTop == position)
-        return
-    freeze = true;
-    customScrollTo(position, delay);
+    const position = window.innerHeight * 1.5 * page; 
+    if (document.scrollingElement.scrollTop == position)    
+        return;    
+    freeze = true;  
+    customScrollTo(position, delay); 
     setTimeout(() => {
-        freeze = false;
+        freeze = false; 
     }, delay);
 }
