@@ -69,7 +69,7 @@ function planeBounceHandler(planeRotation, bouncingObjDirection) {
 }
 
 function mousePosHandler(e) {
-    if (isPlaying && !(pongBallPos[0] > 25 && pongBallPos[0] < 55 && e.offsetY - pongBallPos[1] < 75)) {
+    if (isPlaying && !circleIntersectRectangle(pongBallPos[0], pongBallPos[1], 15, 45, e.offsetY, 8, 58)) {
         pongPlayerPosY = e.offsetY;
     } else {
         //verifie si le curseur est dans le bouton play
@@ -134,12 +134,18 @@ function update() {
             }
         }
         //collisionLogic
-        if (y < 15 || y > canvas.height - 15) {
+        if (y < 15) {
             pongBallDirection = planeBounceHandler(0, pongBallDirection);
+            y = 15;
+        }
+        else {
+            if (y > canvas.height - 15) {
+                pongBallDirection = planeBounceHandler(0, pongBallDirection);
+                y = canvas.height - 15;
+            }
         }
         if (circleIntersectRectangle(x, y, 15, 45, pongPlayerPosY, 10, 60) ||
             circleIntersectRectangle(x, y, 15, canvas.width - 45, pongBotPosY, 10, 60)) {
-            console.log(pongLastCollisionDirection)
             pongBallDirection = planeBounceHandler(pongLastCollisionDirection, pongBallDirection);
         }
         //ballMovement
