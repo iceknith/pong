@@ -16,7 +16,12 @@ function isInRectangle(x, y, xCenter, yCenter, width, height) {
 function isInCircle(x, y, xCenter, yCenter, radius) {
     return (x - xCenter) ** 2 + (y - yCenter) ** 2 <= radius ** 2
 }
-function circleIntersectRectangle(xc, yc, radius, xr, yr, width, height) {
+
+function circleIntersectLine(cPos1, cPos2, radius, edge1, edge2, pos) {
+    return Math.abs(pos - cPos1) <= radius && edge1 <= cPos2 && cPos2 <= edge2
+}
+
+function ballCollisionRectangle(xc, yc, radius, xr, yr, width, height) {
 
     //calcul extremites rectangle
     x1 = xr - width / 2;
@@ -24,40 +29,53 @@ function circleIntersectRectangle(xc, yc, radius, xr, yr, width, height) {
     y1 = yr - height / 2;
     y2 = yr + height / 2;
 
-    function sideDetection(cPos1, cPos2, radius, edge1, edge2, pos) {
-        return Math.abs(pos - cPos1) <= radius && edge1 <= cPos2 && cPos2 <= edge2
-    }
     //calcul si intersection ou pas
-    if (sideDetection(yc, xc, radius, x1, x2, y1)) {
-        pongLastCollisionDirection = - Math.PI;
+    if (circleIntersectLine(yc, xc, radius, x1, x2, y1)) {
+        collisionInfo.set("direction", - Math.PI);
+        collisionInfo.set("ballOutLocationY", Math.tan(pongBallDirection) * (y1 - radius - yc) + xc);
+        collisionInfo.set("ballOutLocationX", y1 - radius);
         return true
     }
-    if (sideDetection(yc, xc, radius, x1, x2, y2)) {
-        pongLastCollisionDirection = - Math.PI;
+    if (circleIntersectLine(yc, xc, radius, x1, x2, y2)) {
+        collisionInfo.set("direction", - Math.PI);
+        collisionInfo.set("ballOutLocationY", Math.tan(pongBallDirection) * (y2 + radius - yc) + xc);
+        collisionInfo.set("ballOutLocationX", y2 + radius);
         return true
     }
-    if (sideDetection(xc, yc, radius, y1, y2, x1)) {
-        pongLastCollisionDirection = Math.PI / 2;
+    if (circleIntersectLine(xc, yc, radius, y1, y2, x1)) {
+        collisionInfo.set("direction", Math.PI / 2);
+        collisionInfo.set("ballOutLocationX", x1 - radius);
+        collisionInfo.set("ballOutLocationY", Math.tan(pongBallDirection) * (x1 - radius - xc) + yc);
         return true
     }
-    if (sideDetection(xc, yc, radius, y1, y2, x2)) {
-        pongLastCollisionDirection = Math.PI / 2;
+    if (circleIntersectLine(xc, yc, radius, y1, y2, x2)) {
+        collisionInfo.set("direction", Math.PI / 2);
+        collisionInfo.set("ballOutLocationX", x2 + radius);
+        collisionInfo.set("ballOutLocationY", Math.tan(pongBallDirection) * (x2 + radius - xc) + yc);
         return true
     }
     if (isInCircle(x1, y1, xc, yc, radius)) {
-        pongLastCollisionDirection = 3 * Math.PI / 4;
+        collisionInfo.set("direction", 3 * Math.PI / 4);
+        collisionInfo.set("ballOutLocationX", x1 - Math.sqrt(radius * radius / 2));
+        collisionInfo.set("ballOutLocationY", y1 - Math.sqrt(radius * radius / 2));
         return true
     }
     if (isInCircle(x2, y1, xc, yc, radius)) {
-        pongLastCollisionDirection = Math.PI / 4;
+        collisionInfo.set("direction", Math.PI / 4);
+        collisionInfo.set("ballOutLocationX", x2 + Math.sqrt(radius * radius / 2));
+        collisionInfo.set("ballOutLocationY", y1 - Math.sqrt(radius * radius / 2));
         return true
     }
     if (isInCircle(x1, y2, xc, yc, radius)) {
-        pongLastCollisionDirection = 5 * Math.PI / 4;
+        collisionInfo.set("direction", 5 * Math.PI / 4);
+        collisionInfo.set("ballOutLocationX", x1 - Math.sqrt(radius * radius / 2));
+        collisionInfo.set("ballOutLocationY", y2 + Math.sqrt(radius * radius / 2));
         return true
     }
     if (isInCircle(x2, y2, xc, yc, radius)) {
-        pongLastCollisionDirection = 7 * Math.PI / 2;
+        collisionInfo.set("direction", 7 * Math.PI / 2);
+        collisionInfo.set("ballOutLocationX", y2 + Math.sqrt(radius * radius / 2));
+        collisionInfo.set("ballOutLocationY", y2 + Math.sqrt(radius * radius / 2));
         return true
     }
     return false
@@ -69,7 +87,7 @@ function planeBounceHandler(planeRotation, bouncingObjDirection) {
 }
 
 function mousePosHandler(e) {
-    if (isPlaying && !circleIntersectRectangle(pongBallPos[0], pongBallPos[1], 15, 45, e.offsetY, 8, 58)) {
+    if (isPlaying && !ballCollisionRectangle(pongBallPos[0], pongBallPos[1], 15, 45, e.offsetY, 8, 58)) {
         pongPlayerPosY = e.offsetY;
     } else {
         //verifie si le curseur est dans le bouton play
@@ -117,6 +135,7 @@ function update() {
         //--GameLogic--//
         x = pongBallPos[0]
         y = pongBallPos[1]
+
         //scoreLogic
         if (x < 0) {
             pongBotScore += 1;
@@ -133,29 +152,40 @@ function update() {
                 pongBallSpeed = 6;
             }
         }
+        //ballMovement
+        x = Math.cos(pongBallDirection) * pongBallSpeed * deltaTime / 15 + x;
+        y = Math.cos(Math.PI / 2 - pongBallDirection) * pongBallSpeed * deltaTime / 15 + y
+
         //collisionLogic
+        //bounds
         if (y < 15) {
             pongBallDirection = planeBounceHandler(0, pongBallDirection);
-            y = 15;
+            y = 16;
         }
         else {
             if (y > canvas.height - 15) {
                 pongBallDirection = planeBounceHandler(0, pongBallDirection);
-                y = canvas.height - 15;
+                y = canvas.height - 16;
             }
         }
-        if (circleIntersectRectangle(x, y, 15, 45, pongPlayerPosY, 10, 60) ||
-            circleIntersectRectangle(x, y, 15, canvas.width - 45, pongBotPosY, 10, 60)) {
-            pongBallDirection = planeBounceHandler(pongLastCollisionDirection, pongBallDirection);
+        //platfforms
+        //check collision this frame
+        if (ballCollisionRectangle(x, y, 15, 45, pongPlayerPosY, 10, 60) ||
+            ballCollisionRectangle(x, y, 15, canvas.width - 45, pongBotPosY, 10, 60)) {
+            pongBallDirection = planeBounceHandler(collisionInfo.get("direction"), pongBallDirection);
+            x = collisionInfo.get("ballOutLocationX");
+            y = collisionInfo.get("ballOutLocationY");
         }
-        //ballMovement
-        pongBallPos = [
-            Math.cos(pongBallDirection) * pongBallSpeed * deltaTime / 15 + x,
-            Math.cos(Math.PI / 2 - pongBallDirection) * pongBallSpeed * deltaTime / 15 + y
-        ];
+        //check collision between frames
+        //coming soon...
 
         //IA Logic
         pongBotPosY = y;
+        //pongPlayerPosY = y;
+
+        //saving pongBallPos
+        pongBallPos = [x, y];
+
     } else {
         //drawing everything
         //play button
@@ -170,6 +200,7 @@ function update() {
         context.fillStyle = "black";
         context.fillText('Play', canvas.width / 2 - 75, canvas.height / 2 - 180);
     }
+
     window.requestAnimationFrame(update)
 }
 
@@ -181,10 +212,10 @@ var time0;
 var time1;
 
 var pongBallPos;
-var pongBallSpeed = 6;
+var pongBallSpeed = 5;
 const values = [0, 2 * Math.PI / 3, 3 * Math.PI / 3, 5 * Math.PI / 3]
 var pongBallDirection = Math.random() * Math.PI / 3 + values[Math.floor(Math.random() * 4)];
-var pongLastCollisionDirection;
+var collisionInfo = new Map;
 
 var pongPlayerPosY = 375;
 var pongPlayerScore = 0;
